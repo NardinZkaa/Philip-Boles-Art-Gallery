@@ -9,6 +9,50 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
+// Page content interface
+export interface PageContent {
+  id: string;
+  slug: string;
+  title_en: string;
+  title_ar?: string;
+  content_en: Record<string, any>;
+  content_ar?: Record<string, any>;
+  meta_description_en?: string;
+  meta_description_ar?: string;
+  is_published: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PageContentInsert {
+  slug: string;
+  title_en: string;
+  title_ar?: string;
+  content_en: Record<string, any>;
+  content_ar?: Record<string, any>;
+  meta_description_en?: string;
+  meta_description_ar?: string;
+  is_published?: boolean;
+}
+
+// Gallery settings interface
+export interface GallerySetting {
+  id: string;
+  name: string;
+  value_en: string;
+  value_ar?: string;
+  description?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface GallerySettingInsert {
+  name: string;
+  value_en: string;
+  value_ar?: string;
+  description?: string;
+}
+
 export interface Painting {
   id: string;
   title: string;
@@ -147,5 +191,134 @@ export const paintingService = {
       .getPublicUrl(filePath);
 
     return data.publicUrl;
+  }
+};
+
+// Page content CRUD operations
+export const pageService = {
+  // Get all pages
+  async getAll(): Promise<PageContent[]> {
+    const { data, error } = await supabase
+      .from('pages')
+      .select('*')
+      .order('slug', { ascending: true });
+    
+    if (error) throw error;
+    return data || [];
+  },
+
+  // Get page by slug
+  async getBySlug(slug: string): Promise<PageContent | null> {
+    const { data, error } = await supabase
+      .from('pages')
+      .select('*')
+      .eq('slug', slug)
+      .eq('is_published', true)
+      .single();
+    
+    if (error) {
+      if (error.code === 'PGRST116') return null; // Not found
+      throw error;
+    }
+    return data;
+  },
+
+  // Create page
+  async create(page: PageContentInsert): Promise<PageContent> {
+    const { data, error } = await supabase
+      .from('pages')
+      .insert(page)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  },
+
+  // Update page
+  async update(id: string, page: Partial<PageContentInsert>): Promise<PageContent> {
+    const { data, error } = await supabase
+      .from('pages')
+      .update({ ...page, updated_at: new Date().toISOString() })
+      .eq('id', id)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  },
+
+  // Delete page
+  async delete(id: string): Promise<void> {
+    const { error } = await supabase
+      .from('pages')
+      .delete()
+      .eq('id', id);
+    
+    if (error) throw error;
+  }
+};
+
+// Gallery settings CRUD operations
+export const gallerySettingsService = {
+  // Get all settings
+  async getAll(): Promise<GallerySetting[]> {
+    const { data, error } = await supabase
+      .from('gallery_settings')
+      .select('*')
+      .order('name', { ascending: true });
+    
+    if (error) throw error;
+    return data || [];
+  },
+
+  // Get setting by name
+  async getByName(name: string): Promise<GallerySetting | null> {
+    const { data, error } = await supabase
+      .from('gallery_settings')
+      .select('*')
+      .eq('name', name)
+      .single();
+    
+    if (error) {
+      if (error.code === 'PGRST116') return null; // Not found
+      throw error;
+    }
+    return data;
+  },
+
+  // Create setting
+  async create(setting: GallerySettingInsert): Promise<GallerySetting> {
+    const { data, error } = await supabase
+      .from('gallery_settings')
+      .insert(setting)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  },
+
+  // Update setting
+  async update(id: string, setting: Partial<GallerySettingInsert>): Promise<GallerySetting> {
+    const { data, error } = await supabase
+      .from('gallery_settings')
+      .update({ ...setting, updated_at: new Date().toISOString() })
+      .eq('id', id)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  },
+
+  // Delete setting
+  async delete(id: string): Promise<void> {
+    const { error } = await supabase
+      .from('gallery_settings')
+      .delete()
+      .eq('id', id);
+    
+    if (error) throw error;
   }
 };
