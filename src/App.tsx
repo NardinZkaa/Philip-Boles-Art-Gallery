@@ -10,6 +10,7 @@ import Gallery from './pages/Gallery';
 import Review from './pages/Review';
 import Exhibitions from './pages/Exhibitions';
 import Contact from './pages/Contact';
+import Admin from './pages/Admin';
 import './App.css';
 
 function App() {
@@ -27,6 +28,7 @@ function App() {
                 <Route path="/review" element={<Review />} />
                 <Route path="/exhibitions" element={<Exhibitions />} />
                 <Route path="/contact" element={<Contact />} />
+                <Route path="/admin" element={<Admin />} />
               </Routes>
             </main>
             <Footer />

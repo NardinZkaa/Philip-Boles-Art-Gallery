@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLanguage } from '../contexts/LanguageContext';
+import { paintingService, Painting } from '../lib/supabase';
 import { ArrowRightIcon, PlayIcon } from '@heroicons/react/24/outline';
 
 const Home: React.FC = () => {
   const { language } = useLanguage();
   const [currentImage, setCurrentImage] = useState(0);
+  const [featuredWorks, setFeaturedWorks] = useState<Painting[]>([]);
   
   const careerTimeline = [
     { year: '1996', event: { en: 'Fine Arts Graduation', ar: 'تخرج من الفنون الجميلة' } },
@@ -15,18 +17,27 @@ const Home: React.FC = () => {
     { year: '2020', event: { en: 'International Recognition', ar: 'اعتراف دولي' } },
   ];
 
-  const featuredWorks = [
-    { id: 1, title: 'Shadows of Cairo', year: '2020', image: 'https://images.pexels.com/photos/1194420/pexels-photo-1194420.jpeg?auto=compress&cs=tinysrgb&w=800' },
-    { id: 2, title: 'Desert Contemplation', year: '2018', image: 'https://images.pexels.com/photos/1779487/pexels-photo-1779487.jpeg?auto=compress&cs=tinysrgb&w=800' },
-    { id: 3, title: 'Urban Phenomenology', year: '2021', image: 'https://images.pexels.com/photos/1266808/pexels-photo-1266808.jpeg?auto=compress&cs=tinysrgb&w=800' },
-  ];
+  useEffect(() => {
+    loadFeaturedWorks();
+  }, []);
 
   useEffect(() => {
+    if (featuredWorks.length === 0) return;
+    
     const interval = setInterval(() => {
       setCurrentImage((prev) => (prev + 1) % featuredWorks.length);
     }, 4000);
     return () => clearInterval(interval);
-  }, []);
+  }, [featuredWorks.length]);
+
+  const loadFeaturedWorks = async () => {
+    try {
+      const data = await paintingService.getFeatured();
+      setFeaturedWorks(data.slice(0, 3)); // Show only first 3 featured works
+    } catch (error) {
+      console.error('Error loading featured works:', error);
+    }
+  };
 
   return (
     <div className="pt-16">
@@ -134,42 +145,48 @@ const Home: React.FC = () => {
             {language === 'en' ? 'Signature Works' : 'الأعمال المميزة'}
           </motion.h2>
           
-          <div className="relative h-96 rounded-lg overflow-hidden">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={currentImage}
-                initial={{ opacity: 0, scale: 1.1 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                transition={{ duration: 0.8 }}
-                className="absolute inset-0"
-              >
-                <img
-                  src={featuredWorks[currentImage].image}
-                  alt={featuredWorks[currentImage].title}
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-black/40 flex items-end justify-start p-8">
-                  <div className="text-white">
-                    <h3 className="text-2xl font-serif mb-2">{featuredWorks[currentImage].title}</h3>
-                    <p className="text-neutral-300">{featuredWorks[currentImage].year}</p>
+          {featuredWorks.length > 0 && (
+            <div className="relative h-96 rounded-lg overflow-hidden">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={currentImage}
+                  initial={{ opacity: 0, scale: 1.1 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  transition={{ duration: 0.8 }}
+                  className="absolute inset-0"
+                >
+                  <img
+                    src={featuredWorks[currentImage].image_url}
+                    alt={featuredWorks[currentImage].title}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-black/40 flex items-end justify-start p-8">
+                    <div className="text-white">
+                      <h3 className="text-2xl font-serif mb-2">
+                        {language === 'ar' && featuredWorks[currentImage].title_ar 
+                          ? featuredWorks[currentImage].title_ar 
+                          : featuredWorks[currentImage].title}
+                      </h3>
+                      <p className="text-neutral-300">{featuredWorks[currentImage].year}</p>
+                    </div>
                   </div>
-                </div>
-              </motion.div>
-            </AnimatePresence>
-            
-            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
-              {featuredWorks.map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => setCurrentImage(index)}
-                  className={`w-3 h-3 rounded-full transition-colors ${
-                    index === currentImage ? 'bg-accent-600' : 'bg-white/30'
-                  }`}
-                />
-              ))}
+                </motion.div>
+              </AnimatePresence>
+              
+              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
+                {featuredWorks.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setCurrentImage(index)}
+                    className={`w-3 h-3 rounded-full transition-colors ${
+                      index === currentImage ? 'bg-accent-600' : 'bg-white/30'
+                    }`}
+                  />
+                ))}
+              </div>
             </div>
-          </div>
+          )}
           
           <div className="text-center mt-12">
             <Link

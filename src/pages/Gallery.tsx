@@ -1,115 +1,31 @@
 import React, { useState } from 'react';
+import { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLanguage } from '../contexts/LanguageContext';
+import { paintingService, Painting } from '../lib/supabase';
 import { XMarkIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
-
-interface Artwork {
-  id: number;
-  title: string;
-  year: string;
-  medium: string;
-  dimensions: string;
-  collection: string;
-  theme: string;
-  image: string;
-  description: string;
-}
 
 const Gallery: React.FC = () => {
   const { language } = useLanguage();
-  const [selectedArtwork, setSelectedArtwork] = useState<Artwork | null>(null);
+  const [selectedArtwork, setSelectedArtwork] = useState<Painting | null>(null);
   const [filter, setFilter] = useState('all');
+  const [paintings, setPaintings] = useState<Painting[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const artworks: Artwork[] = [
-    {
-      id: 1,
-      title: 'The Chair',
-      year: 'Apr 2023',
-      medium: 'Acrylic on canvas',
-      dimensions: '130 × 100 cm',
-      collection: 'Al-Faw\'aliya',
-      theme: 'Urban',
-      image: '/images/1.jpg',
-      description: 'An exploration of urban consciousness through the interplay of light and architectural forms.'
-    },
-    {
-      id: 2,
-      title: 'Desert Contemplation',
-      year: '2018',
-      medium: 'Acrylic on Canvas',
-      dimensions: '100 x 80 cm',
-      collection: 'Phenomenology',
-      theme: 'Landscape',
-      image: '/images/2.jpg',
-      description: 'A meditation on solitude and the vastness of the Egyptian landscape.'
-    },
-    {
-      id: 3,
-      title: 'Urban Phenomenology',
-      year: '2021',
-      medium: 'Mixed Media',
-      dimensions: '150 x 100 cm',
-      collection: 'Al-Faw\'aliya',
-      theme: 'Urban',
-      image: '/images/3.jpg',
-      description: 'Contemporary urban life filtered through the lens of phenomenological investigation.'
-    },
-    {
-      id: 4,
-      title: 'Memory Palace',
-      year: '2019',
-      medium: 'Oil on Canvas',
-      dimensions: '110 x 85 cm',
-      collection: 'Philological Layers',
-      theme: 'Abstract',
-      image: '/images/4.jpg',
-      description: 'An archaeological excavation of personal and collective memory through visual metaphor.'
-    },
-    {
-      id: 5,
-      title: 'Light Studies III',
-      year: '2022',
-      medium: 'Watercolor',
-      dimensions: '70 x 50 cm',
-      collection: 'Phenomenology',
-      theme: 'Portrait',
-      image: '/images/5.jpg',
-      description: 'A study in the phenomenology of light as it reveals and conceals human emotion.'
-    },
-    {
-      id: 6,
-      title: 'Cultural Sediments',
-      year: '2017',
-      medium: 'Mixed Media',
-      dimensions: '130 x 95 cm',
-      collection: 'Philological Layers',
-      theme: 'Abstract',
-      image: '/images/6.jpg',
-      description: 'Layers of cultural meaning embedded in the visual substrate of contemporary experience.'
-    },
-    {
-      id: 7,
-      title: 'Cultural Sediments',
-      year: '2017',
-      medium: 'Mixed Media',
-      dimensions: '130 x 95 cm',
-      collection: 'Philological Layers',
-      theme: 'Abstract',
-      image: '/images/7.jpg',
-      description: 'Layers of cultural meaning embedded in the visual substrate of contemporary experience.'
-    },
-    {
-      id: 8,
-      title: 'Cultural Sediments',
-      year: '2017',
-      medium: 'Mixed Media',
-      dimensions: '130 x 95 cm',
-      collection: 'Philological Layers',
-      theme: 'Abstract',
-      image: '/images/8.jpg',
-      description: 'Layers of cultural meaning embedded in the visual substrate of contemporary experience.'
-    },
-  ];
+  useEffect(() => {
+    loadPaintings();
+  }, []);
+
+  const loadPaintings = async () => {
+    try {
+      const data = await paintingService.getAll();
+      setPaintings(data);
+    } catch (error) {
+      console.error('Error loading paintings:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filters = [
     { key: 'all', label: { en: 'All Works', ar: 'جميع الأعمال' } },
@@ -119,8 +35,16 @@ const Gallery: React.FC = () => {
   ];
 
   const filteredArtworks = filter === 'all' 
-    ? artworks 
-    : artworks.filter(artwork => artwork.collection === filter);
+    ? paintings 
+    : paintings.filter(painting => painting.collection === filter);
+
+  if (loading) {
+    return (
+      <div className="pt-16 min-h-screen bg-primary-800 flex items-center justify-center">
+        <div className="text-neutral-100">Loading gallery...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="pt-16">
@@ -163,21 +87,21 @@ const Gallery: React.FC = () => {
             layout
           >
             <AnimatePresence>
-              {filteredArtworks.map((artwork) => (
+              {filteredArtworks.map((painting) => (
                 <motion.div
-                  key={artwork.id}
+                  key={painting.id}
                   layout
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.8 }}
                   transition={{ duration: 0.5 }}
                   className="group cursor-pointer"
-                  onClick={() => setSelectedArtwork(artwork)}
+                  onClick={() => setSelectedArtwork(painting)}
                 >
                   <div className="relative overflow-hidden rounded-lg bg-primary-700 aspect-[3/4]">
                     <img
-                      src={artwork.image}
-                      alt={artwork.title}
+                      src={painting.image_url}
+                      alt={painting.title}
                       className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                     />
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors duration-300 flex items-center justify-center">
@@ -190,8 +114,12 @@ const Gallery: React.FC = () => {
                     </div>
                   </div>
                   <div className="mt-4">
-                    <h3 className="text-lg font-serif text-neutral-100 mb-1">{artwork.title}</h3>
-                    <p className="text-sm text-neutral-400">{artwork.year} • {artwork.medium}</p>
+                    <h3 className="text-lg font-serif text-neutral-100 mb-1">
+                      {language === 'ar' && painting.title_ar ? painting.title_ar : painting.title}
+                    </h3>
+                    <p className="text-sm text-neutral-400">
+                      {painting.year} • {language === 'ar' && painting.medium_ar ? painting.medium_ar : painting.medium}
+                    </p>
                   </div>
                 </motion.div>
               ))}
@@ -231,7 +159,7 @@ const Gallery: React.FC = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                   <div className="aspect-[3/4] rounded-lg overflow-hidden">
                     <img
-                      src={selectedArtwork.image}
+                      src={selectedArtwork.image_url}
                       alt={selectedArtwork.title}
                       className="w-full h-full object-cover"
                     />
@@ -244,9 +172,13 @@ const Gallery: React.FC = () => {
                       </h3>
                       <div className="space-y-2 text-sm text-neutral-400">
                         <p><strong className="text-neutral-300">Date:</strong> {selectedArtwork.year}</p>
-                        <p><strong className="text-neutral-300">Medium:</strong> {selectedArtwork.medium}</p>
+                        <p><strong className="text-neutral-300">Medium:</strong> 
+                          {language === 'ar' && selectedArtwork.medium_ar ? selectedArtwork.medium_ar : selectedArtwork.medium}
+                        </p>
                         <p><strong className="text-neutral-300">Dimensions:</strong> {selectedArtwork.dimensions}</p>
-                        <p><strong className="text-neutral-300">Collection:</strong> {selectedArtwork.collection}</p>
+                        <p><strong className="text-neutral-300">Collection:</strong> 
+                          {language === 'ar' && selectedArtwork.collection_ar ? selectedArtwork.collection_ar : selectedArtwork.collection}
+                        </p>
                         <p><strong className="text-neutral-300">Theme:</strong> {selectedArtwork.theme}</p>
                       </div>
                     </div>
@@ -256,7 +188,7 @@ const Gallery: React.FC = () => {
                         {language === 'en' ? 'Artist Note' : 'ملاحظة الفنان'}
                       </h3>
                       <p className="text-sm text-neutral-400 leading-relaxed">
-                        {selectedArtwork.description}
+                        {language === 'ar' && selectedArtwork.description_ar ? selectedArtwork.description_ar : selectedArtwork.description}
                       </p>
                     </div>
                     
