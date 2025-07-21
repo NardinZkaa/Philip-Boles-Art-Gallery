@@ -22,6 +22,11 @@ const Gallery: React.FC = () => {
       setPaintings(data);
     } catch (error) {
       console.error('Error loading paintings:', error);
+      // If table doesn't exist, show empty state instead of error
+      if (error instanceof Error && error.message.includes('relation "public.paintings" does not exist')) {
+        setPaintings([]);
+        return;
+      }
     } finally {
       setLoading(false);
     }
@@ -74,7 +79,15 @@ const Gallery: React.FC = () => {
               >
                 {filterOption.label[language]}
               </button>
-            ))}
+            <div className="max-w-md mx-auto">
+              <p className="text-gray-600 mb-4">{t('noPaintings')}</p>
+              <p className="text-sm text-gray-500">
+                {language === 'ar' 
+                  ? 'يرجى إنشاء جدول اللوحات في قاعدة البيانات أولاً'
+                  : 'Please create the paintings table in your database first'
+                }
+              </p>
+            </div>
           </div>
         </div>
       </section>

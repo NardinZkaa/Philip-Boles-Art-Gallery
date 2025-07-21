@@ -32,10 +32,18 @@ const Home: React.FC = () => {
 
   const loadFeaturedWorks = async () => {
     try {
-      const data = await paintingService.getFeatured();
-      setFeaturedWorks(data.slice(0, 3)); // Show only first 3 featured works
+      const featured = await paintingService.getFeatured();
+      setFeaturedWorks(featured);
     } catch (error) {
       console.error('Error loading featured works:', error);
+      // If table doesn't exist, show empty state instead of error
+      if (error instanceof Error && error.message.includes('relation "public.paintings" does not exist')) {
+        setFeaturedWorks([]);
+        return;
+      }
+      setError('Failed to load featured works');
+    } finally {
+      setLoading(false);
     }
   };
 
