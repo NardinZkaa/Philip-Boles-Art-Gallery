@@ -9,6 +9,8 @@ const Home: React.FC = () => {
   const { language } = useLanguage();
   const [currentImage, setCurrentImage] = useState(0);
   const [featuredWorks, setFeaturedWorks] = useState<Painting[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   
   const careerTimeline = [
     { year: '1996', event: { en: 'Fine Arts Graduation', ar: 'تخرج من الفنون الجميلة' } },
