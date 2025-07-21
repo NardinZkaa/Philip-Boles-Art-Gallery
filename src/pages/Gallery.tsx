@@ -80,15 +80,6 @@ const Gallery: React.FC = () => {
                 {filterOption.label[language]}
               </button>
             ))}
-            <div className="max-w-md mx-auto">
-              <p className="text-gray-600 mb-4">{t('noPaintings')}</p>
-              <p className="text-sm text-gray-500">
-                {language === 'ar' 
-                  ? 'يرجى إنشاء جدول اللوحات في قاعدة البيانات أولاً'
-                  : 'Please create the paintings table in your database first'
-                }
-              </p>
-            </div>
           </div>
         </div>
       </section>
