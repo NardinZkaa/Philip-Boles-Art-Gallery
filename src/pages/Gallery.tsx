@@ -197,7 +197,13 @@ const Gallery: React.FC = () => {
                       </p>
                     </div>
                     
-                    <button className="w-full bg-accent-600 hover:bg-accent-700 text-white py-3 px-6 rounded-lg font-medium transition-colors">
+                    <button 
+                      onClick={() => {
+                        setSelectedArtwork(null);
+                        window.location.href = '/contact';
+                      }}
+                      className="w-full bg-accent-600 hover:bg-accent-700 text-white py-3 px-6 rounded-lg font-medium transition-colors"
+                    >
                       {language === 'en' ? 'Inquire About This Work' : 'الاستفسار عن هذا العمل'}
                     </button>
                   </div>
