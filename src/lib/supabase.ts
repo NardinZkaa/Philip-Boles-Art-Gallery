@@ -3,6 +3,8 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
+let supabase: any;
+
 if (!supabaseUrl || !supabaseAnonKey || supabaseUrl.includes('your-project-id') || supabaseAnonKey.includes('your-anon-key')) {
   console.warn('Supabase environment variables are not properly configured. Please update your .env file with actual Supabase credentials.');
   // Create a mock client to prevent errors during development
@@ -17,12 +19,12 @@ if (!supabaseUrl || !supabaseAnonKey || supabaseUrl.includes('your-project-id') 
       order: function() { return this; }
     })
   };
-  // @ts-ignore
-  export const supabase = mockClient;
+  supabase = mockClient;
 } else {
-  export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+  supabase = createClient(supabaseUrl, supabaseAnonKey);
 }
 
+export { supabase };
 
 // Page content interface
 export interface PageContent {
