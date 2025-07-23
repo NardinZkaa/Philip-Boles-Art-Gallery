@@ -10,10 +10,10 @@ if (!supabaseUrl || !supabaseAnonKey || supabaseUrl.includes('your-project-id') 
   // Create a mock client to prevent errors during development
   const mockClient = {
     from: () => ({
-      select: () => ({ data: [], error: null }),
-      insert: () => ({ data: null, error: new Error('Supabase not configured') }),
-      update: () => ({ data: null, error: new Error('Supabase not configured') }),
-      delete: () => ({ error: new Error('Supabase not configured') }),
+      select: () => Promise.resolve({ data: [], error: null }),
+      insert: () => Promise.resolve({ data: null, error: new Error('Supabase not configured') }),
+      update: () => Promise.resolve({ data: null, error: new Error('Supabase not configured') }),
+      delete: () => Promise.resolve({ error: new Error('Supabase not configured') }),
       eq: function() { return this; },
       single: function() { return this; },
       order: function() { return this; }
