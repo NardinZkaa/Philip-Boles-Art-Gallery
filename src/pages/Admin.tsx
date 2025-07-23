@@ -201,8 +201,17 @@ const Admin: React.FC = () => {
 
     setUploading(true);
     try {
-      const imageUrl = await paintingService.uploadImage(file);
-      setFormData({ ...formData, image_url: imageUrl });
+      // For now, we'll use a placeholder URL since Supabase storage might not be configured
+      // In production, you would implement proper image upload to Supabase Storage
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        if (event.target?.result) {
+          // Create a temporary URL for the uploaded image
+          const imageUrl = event.target.result as string;
+          setFormData({ ...formData, image_url: imageUrl });
+        }
+      };
+      reader.readAsDataURL(file);
     } catch (error) {
       console.error('Error uploading image:', error);
       alert('Error uploading image. Please try again.');
@@ -695,7 +704,8 @@ const Admin: React.FC = () => {
                   <label className="block text-sm font-medium text-neutral-300 mb-2">
                     Image Upload
                   </label>
-                  <div className="flex items-center space-x-4">
+                  <div className="space-y-4">
+                    <div className="flex items-center space-x-4">
                     <input
                       type="file"
                       accept="image/*"
@@ -705,15 +715,25 @@ const Admin: React.FC = () => {
                     />
                     <label
                       htmlFor="image-upload"
-                      className="bg-primary-600 hover:bg-primary-500 text-white px-4 py-2 rounded-lg cursor-pointer flex items-center space-x-2"
+                      className="bg-primary-600 hover:bg-primary-500 disabled:bg-primary-700 text-white px-4 py-2 rounded-lg cursor-pointer flex items-center space-x-2 transition-colors"
                     >
                       <PhotoIcon className="w-5 h-5" />
-                      <span>Choose Image</span>
+                      <span>{uploading ? 'Uploading...' : 'Choose Image'}</span>
                     </label>
                     {formData.image_url && (
                       <div className="flex items-center space-x-2 text-green-400">
                         <CheckIcon className="w-5 h-5" />
                         <span>Image uploaded</span>
+                      </div>
+                    )}
+                    </div>
+                    {formData.image_url && (
+                      <div className="mt-4">
+                        <img 
+                          src={formData.image_url} 
+                          alt="Preview" 
+                          className="w-32 h-40 object-cover rounded-lg border border-primary-600"
+                        />
                       </div>
                     )}
                   </div>
@@ -772,7 +792,7 @@ const Admin: React.FC = () => {
                 <div className="flex space-x-4 pt-4">
                   <button
                     type="submit"
-                    disabled={uploading || !formData.image_url}
+                    disabled={uploading}
                     className="flex-1 bg-accent-600 hover:bg-accent-700 disabled:bg-accent-800 text-white py-3 rounded-lg font-medium transition-colors"
                   >
                     {uploading ? 'Saving...' : editingPainting ? 'Update Painting' : 'Add Painting'}

@@ -172,25 +172,6 @@ export const paintingService = {
       .eq('id', id);
     
     if (error) throw error;
-  },
-
-  // Upload image to Supabase Storage
-  async uploadImage(file: File): Promise<string> {
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${Math.random()}.${fileExt}`;
-    const filePath = `paintings/${fileName}`;
-
-    const { error: uploadError } = await supabase.storage
-      .from('images')
-      .upload(filePath, file);
-
-    if (uploadError) throw uploadError;
-
-    const { data } = supabase.storage
-      .from('images')
-      .getPublicUrl(filePath);
-
-    return data.publicUrl;
   }
 };
 
